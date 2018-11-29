@@ -1,5 +1,6 @@
 # DATRAS
-A repository for code and examples related to the ICES DATRAS database
+
+_A repository for code and examples related to the ICES DATRAS database_
 
 ### DATRAS is an online database of trawl surveys with access to standard data products
 
