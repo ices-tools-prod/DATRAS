@@ -24,6 +24,7 @@ survey <- 'NS-IBTS'
 year <- 2018
 quarter <- 1
 
+file_root <- paste0(survey, year,"q", quarter,"_")
 
 #### Connect to database
 # settings
@@ -127,15 +128,16 @@ dat_long$Age <- factor(dat_long$Age, levels = c("Age_0", "Age_1", "Age_2", "Age_
 ggplot(dat_long, aes(x=Age, y=LngtClass, size=Value)) +
         geom_point(alpha=0.2)+ facet_grid(Species~Area, scales = "free")+
         theme(text = element_text(size=6), axis.text.x = element_text(angle = 45,hjust = 1))
+
         
-ggsave("NSIBTS2017q1_ALKnoSubstitution.tiff", units= "mm", width = 350, height = 175)
+ggsave(paste0(file_root,"ALKnoSubstitution.tiff"), units= "mm", width = 350, height = 175)
 
 ggplot(dat_long, aes(x=Age, y=LngtClass, size=Value, colour = label)) +
         geom_point(alpha=0.2)+ facet_grid(Species~Area, scales = "free")+
         theme(text = element_text(size=6), axis.text.x = element_text(angle = 45,hjust = 1))+
         scale_color_manual(values = c("blue", "red"))
 
-ggsave("NSIBTS2017q1_ALKnoSubstitutionCOLOR.tiff", units= "mm", width = 350, height = 175)
+ggsave(paste0(file_root,"ALKnoSubstitutionCOLOR.tiff"), units= "mm", width = 350, height = 175)
 
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
 # Now we will do the same plots of ALK with the manual substitution
@@ -156,9 +158,9 @@ SELECT     tblCode_1.Code AS Survey, tblIndexSettings.Quarter ,tblSubKeyInfo.yea
                 group by tblCode_1.Code, tblIndexSettings.Quarter ,tblSubKeyInfo.year,tblCode_2.Code, 
                 tblCode.Code,  A_Datras_WORMS.WoRMS_AphiaID_Valid, A_Datras_WORMS.ScientificName_WoRMS
 ) A 
-                where A.survey = 'NS-IBTS' and a.year = 2017 and a.Quarter = 1 
+                where A.survey = '%s' and a.year = '%s' and a.Quarter = '%s' 
                 group by  a.survey, a.Quarter,a.year, a.ScientificName_WoRMS,A.Area , A.BorrowedArea
-                order by a.ScientificName_WoRMS,A.Area")
+                order by a.ScientificName_WoRMS,A.Area", survey, year, quarter)
 
 #Download the substitution scheme
 
@@ -250,14 +252,14 @@ ggplot(proc1_dat_long, aes(x=Age, y=LngtClass, size=Value)) +
         geom_point(alpha=0.2)+ facet_grid(Species~Area, scales = "free")+
         theme(text = element_text(size=6), axis.text.x = element_text(angle = 45,hjust = 1))
 
-ggsave("NSIBTS2017q1_ALKManualSubstitution.tiff", units= "mm", width = 350, height = 175)
+ggsave(paste0(file_root,"ALKManualSubstitution.tiff"), units= "mm", width = 350, height = 175)
 
 ggplot(res2_long, aes(x=Age, y=LngtClass, size=Value, colour = label)) +
         geom_point(alpha=0.2)+ facet_grid(Species~Area, scales = "free")+
         theme(text = element_text(size=6), axis.text.x = element_text(angle = 45,hjust = 1))+
         scale_color_manual(values = c("black", "red"))
 
-ggsave("NSIBTS2017q1_ALKManualSubstitutionCOLOR.tiff", units= "mm", width = 350, height = 175)
+ggsave(paste0(file_root,"ALKManualSubstitutionCOLOR.tiff"), units= "mm", width = 350, height = 175)
 
 
 
@@ -472,7 +474,7 @@ ggplot(proc2_dat_long, aes(x=Age, y=LngtClass, size=Value2, colour = label)) +
         scale_color_manual(values = c("black", "red"))
 
 
-ggsave("NSIBTS2017q1_ALKAutSubstCOLOR.tiff", units= "mm", width = 350, height = 175)    
+ggsave(paste0(file_root,"ALKAutSubstCOLOR.tiff"), units= "mm", width = 350, height = 175)    
 
         
 ############
@@ -483,9 +485,9 @@ ggsave("NSIBTS2017q1_ALKAutSubstCOLOR.tiff", units= "mm", width = 350, height = 
 names(res3)
 unique(res3$Age)
 res3 <- res3 %>% filter(Age != "x[FALSE, ]")
-res3$Survey <- "NS-IBTS"
-res3$Year <- 2017
-res3$Quarter <- 1       
+res3$Survey <- survey
+res3$Year <- year
+res3$Quarter <- quarter      
 res3$Lngtclas <- res3$LngtClass
 
 bla <- df %>% select(c(AphiaID, Species))
@@ -503,7 +505,7 @@ res3 <- subset(res3, select = c("Survey", "Year", "Quarter", "Area", "Speccode",
 #Check the plus group, needed for indeces calculation
 # However it is set per species elsewhere, so this step could easily be removed
 
-ca <- icesDatras::getCAdata("NS-IBTS", 2017, 1)
+ca <- icesDatras::getCAdata(survey, year, quarter)
 
 plus_gr <- ca %>% select(Valid_Aphia, PlusGr)
 
