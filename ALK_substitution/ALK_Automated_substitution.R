@@ -70,6 +70,8 @@ unique(df$Species)
 
 BorrowArea <- read.csv("BorrowArea.csv")
 
+
+
 # Separate by species
 
 sp.l <- split(df,df$Species)
@@ -130,7 +132,7 @@ ggplot(dat_long, aes(x=Age, y=LngtClass, size=Value)) +
         theme(text = element_text(size=6), axis.text.x = element_text(angle = 45,hjust = 1))
 
         
-ggsave(paste0(file_root,"ALKnoSubstitution.tiff"), units= "mm", width = 350, height = 175)
+ ggsave(paste0(file_root,"ALKnoSubstitution.tiff"), units= "mm", width = 350, height = 175)
 
 ggplot(dat_long, aes(x=Age, y=LngtClass, size=Value, colour = label)) +
         geom_point(alpha=0.2)+ facet_grid(Species~Area, scales = "free")+
@@ -145,8 +147,8 @@ ggsave(paste0(file_root,"ALKnoSubstitutionCOLOR.tiff"), units= "mm", width = 350
 
 # There is a table in the database that stores the substitutions performed
         
-sqlq <- sprintf("select A.survey,a.quarter,A.year,a.ScientificName_WoRMS,A.Area, A.BorrowedArea from ( 
-SELECT     tblCode_1.Code AS Survey, tblIndexSettings.Quarter ,tblSubKeyInfo.year,tblCode_2.Code as Area, 
+sqlq <- sprintf("select A.survey,a.quarter,A.year,a.ScientificName_WoRMS,A.Area, A.BorrowedArea from (
+SELECT     tblCode_1.Code AS Survey, tblIndexSettings.Quarter ,tblSubKeyInfo.year,tblCode_2.Code as Area,
                 tblCode.Code AS BorrowedArea,  A_Datras_WORMS.WoRMS_AphiaID_Valid, A_Datras_WORMS.ScientificName_WoRMS
                 FROM       A_Datras_WORMS INNER JOIN
                 tblIndexSettings ON A_Datras_WORMS.tblcodeid_Aphia = tblIndexSettings.SpecCodeAphia INNER JOIN
@@ -155,36 +157,37 @@ SELECT     tblCode_1.Code AS Survey, tblIndexSettings.Quarter ,tblSubKeyInfo.yea
                 tblCode AS tblCode_2 ON tblSubKeyInfo.Area = tblCode_2.tblCodeID INNER JOIN
                 tblCode ON tblSubArea.SubArea = tblCode.tblCodeID INNER JOIN
                 tblCode AS tblCode_1 ON tblIndexSettings.Survey = tblCode_1.tblCodeID
-                group by tblCode_1.Code, tblIndexSettings.Quarter ,tblSubKeyInfo.year,tblCode_2.Code, 
+                group by tblCode_1.Code, tblIndexSettings.Quarter ,tblSubKeyInfo.year,tblCode_2.Code,
                 tblCode.Code,  A_Datras_WORMS.WoRMS_AphiaID_Valid, A_Datras_WORMS.ScientificName_WoRMS
-) A 
-                where A.survey = '%s' and a.year = '%s' and a.Quarter = '%s' 
+) A
+                where A.survey = '%s' and a.year = '%s' and a.Quarter = '%s'
                 group by  a.survey, a.Quarter,a.year, a.ScientificName_WoRMS,A.Area , A.BorrowedArea
                 order by a.ScientificName_WoRMS,A.Area", survey, year, quarter)
 
-#Download the substitution scheme
+# #Download the substitution scheme
 
 subst <- sqlQuery(conn_datras, sqlq)
 
 res2 <- data.frame()
 res3 <- data.frame()
 
-# Have a look to the substitutions done, if some species have not been supplemented, 
+# Have a look to the substitutions done, if some species have not been supplemented,
 # they have to be out of the next loop
-# This could be automated, but for demonstration purposes is enough as is now 
-
+# This could be automated, but for demonstration purposes is enough as is now
+unique(subst$ScientificName_WoRMS)
+unique(df$Species)
 # Create a vector with the species numbers that were supplemented
 
-species <- c(1,2,4,6,7,8,9,10)
+species <- c(1,2,4,5,6,7,8,9,10)
 
 #loop accross each species
-for(n in species){   
+for(n in species){
         dat <- sp.l[[n]]   #Extract the data from the list
         dat[is.na(dat)] <- 0
         subst_sp <- subst %>% filter(ScientificName_WoRMS %in% dat$Species)
         dat$Area <- as.factor(dat$Area)
         list <- subst_sp %>% select(Area,6)
-        # loop accross all areas 
+        # loop accross all areas
         for(i in 1:10){
                 list_i <- list%>%filter(Area ==i)
                 bla <- unique(list_i$Area)
@@ -201,6 +204,15 @@ for(n in species){
 
 
 #For those species which were not supplemented at all:
+dat <- sp.l[[1]]   #Extract the data from the list
+dat[is.na(dat)] <- 0
+names(dat)
+names(res2)
+dat <- dat[,5:18]
+
+res2 <- dplyr::bind_rows(res2,dat)
+
+
 dat <- sp.l[[3]]   #Extract the data from the list
 dat[is.na(dat)] <- 0
 names(dat)
@@ -209,7 +221,7 @@ dat <- dat[,5:18]
 
 res2 <- dplyr::bind_rows(res2,dat)
 
-dat <- sp.l[[5]]   #Extract the data from the list
+dat <- sp.l[[6]]   #Extract the data from the list
 dat[is.na(dat)] <- 0
 names(dat)
 names(res2)
@@ -254,7 +266,7 @@ ggplot(proc1_dat_long, aes(x=Age, y=LngtClass, size=Value)) +
 
 ggsave(paste0(file_root,"ALKManualSubstitution.tiff"), units= "mm", width = 350, height = 175)
 
-ggplot(res2_long, aes(x=Age, y=LngtClass, size=Value, colour = label)) +
+ggplot(proc1_dat_long, aes(x=Age, y=LngtClass, size=Value, colour = label)) +
         geom_point(alpha=0.2)+ facet_grid(Species~Area, scales = "free")+
         theme(text = element_text(size=6), axis.text.x = element_text(angle = 45,hjust = 1))+
         scale_color_manual(values = c("black", "red"))
@@ -474,7 +486,7 @@ ggplot(proc2_dat_long, aes(x=Age, y=LngtClass, size=Value2, colour = label)) +
         scale_color_manual(values = c("black", "red"))
 
 
-ggsave(paste0(file_root,"ALKAutSubstCOLOR.tiff"), units= "mm", width = 350, height = 175)    
+ggsave(paste0(file_root,"ALKAutSubstCOLOR.tiff"), units= "mm", width = 350, height = 175)
 
         
 ############
@@ -505,11 +517,11 @@ res3 <- subset(res3, select = c("Survey", "Year", "Quarter", "Area", "Speccode",
 #Check the plus group, needed for indeces calculation
 # However it is set per species elsewhere, so this step could easily be removed
 
-ca <- icesDatras::getCAdata(survey, year, quarter)
-
-plus_gr <- ca %>% select(Valid_Aphia, PlusGr)
-
-plus_gr <- unique(plus_gr)
+# ca <- icesDatras::getCAdata(survey, year, quarter)
+# 
+# plus_gr <- ca %>% select(Valid_Aphia, PlusGr)
+# 
+# plus_gr <- unique(plus_gr)
 
 # If all are NAs
 res3$PlusGr <- "-9"
@@ -529,17 +541,77 @@ res3$NoAtALK <- as.integer(res3$NoAtALK)
 res3$PlusGr <- as.integer(res3$PlusGr) 
 unique(res3$Age)
 
+
+
+y2018q1 <- res3
+
+res4 <- rbind(y2018q1, y2018q3, y2019q1,y2019q3)
+
 #I connect to the test server for thew time being
 
 dbConnect_datras <- 'Driver={SQL Server Native Client 11.0};Server=SQL2016Dev;Database=DATRAS;Trusted_Connection=yes'
 
 conn_datras <- odbcDriverConnect(connection = dbConnect_datras)
 
-sqlSave(conn_datras, res3, tablename = "A_DATRAS_tblSubKeyInfo", rownames= T, append = T)
+# dbWriteTable(conn_datras, name = "A_DATRAS_tblSubKeyInfotris", value = res3, row.names = TRUE)
+
+sqlSave(conn_datras, res3, tablename = "A_DATRAS_tblSubKeyInfo2018q1bis", rownames= T, append = F)
+
+sqlSave(conn_datras, res3, tablename = "A_DATRAS_tblSubKeyInfotris", rownames= T, append = T)
+
+
+
 
 ##########
 ## After indexes calculation I plot results 
 ##########
+
+old_long <- Indices_2019_11_28_16_37_35 %>% gather(age, value, Age_0:Age_10, factor_key = TRUE)
+names(old_long)
+old_long <- old_long %>% dplyr::select(c(Year, Quarter, IndexArea, age, value))
+old_long$method <- "old"
+
+
+new_long <- NewIndices %>% gather(age, value, Age_0:Age_10, factor_key = TRUE)
+names(new_long)
+new_long <- new_long %>% dplyr::select(c(Year, Quarter, IndexArea, age, value))
+new_long$method <- "new"
+
+full <- rbind(old_long, new_long)
+full <- full %>% dplyr::filter(value > 0)
+full <- full %>% dplyr::filter(value != "NULL")
+full$value <- as.numeric(full$value)
+
+ggplot2::ggplot(full, ggplot2::aes(x=age, y=value, group = method, colour = method)) +
+        ggplot2::geom_line()+ ggplot2::facet_wrap(~IndexArea, scales = "free")
+
+
+ggplot2::ggplot(full, ggplot2::aes(x=age, y=value, group = interaction(method,Year,Quarter), colour = Year, shape= method)) +
+        ggplot2::geom_line()+ ggplot2::facet_wrap(~IndexArea, scales = "free")
+
+
+## I should do one plot per species to see it properly
+
+species <- unique(full$IndexArea)
+bla <- species[14]
+
+dat <- dplyr::filter(full,IndexArea == bla)
+
+ggplot2::ggplot(dat,ggplot2::aes(x=age, y=value, group = method,colour = method)) +
+        ggplot2::geom_line()+ ggplot2::facet_grid(Quarter~Year, scales = "free")
+
+
+ggplot2::ggsave("Ple3a.tiff", units= "mm", width = 350, height = 175)
+
+
+ggplot2::ggplot(old, ggplot2::aes(x=age, y=value, group = interaction(Year,Quarter), colour = Year)) +
+        ggplot2::geom_line()+ ggplot2::facet_wrap(~IndexArea, scales = "free")
+
+
+
+full_wide <- full %>% spread(age, value)
+
+write.csv(full_wide, "Indexes_old&new_method.csv")
 
 index <- Indices_2019_08_30_15_50_58
 # index <- gsub(NULL, NA, index)
@@ -553,4 +625,74 @@ ggplot(index, aes(x=Age, y=value, group = method, colour = method)) +
         geom_line()+ facet_wrap(~IndexArea, scales = "free")
 
 ggsave("Indexes_comp_2018q1_ALKold_newSubst.tiff", units= "mm", width = 350, height = 175)
+
+
+###
+# For BITS I will try to do ALK substitution for herring
+# There is not even ALK, so I have to create it from the database
+
+library(icesDatras)
+library(ggplot2)
+library(dplyr)
+
+survey <- 'BITS'
+year <- 2004
+quarter <- 1
+
+#For BITS I will focus on herring, I have to create ALK from original data
+
+HH <- getHHdata(survey, year, quarter)
+CA <- getCAdata(survey, year, quarter)
+
+CA<-rbind(CA%>%filter(LngtCode%in%c("1", "5"))%>%mutate(LngtClass=LngtClass*10),
+          CA%>%filter(!LngtCode%in%c("1", "5")))
+
+#Join the two Record Types, only Valid Hauls
+
+HH <- HH %>% select(-(RecordType)) %>% select(-(DateofCalculation))  
+CA <- CA %>% select(-(RecordType)) %>% select(-(DateofCalculation))
+
+# typeof(HH$StNo)
+# typeof(CA$StNo)
+# CA$StNo <- as.character(CA$StNo)
+df <- left_join(CA,HH)%>%
+        filter(HaulVal =="V")
+her <- df %>% filter(Valid_Aphia == "126417")
+her <- her %>% filter(!is.na(Age))
+her <- her %>% mutate(Subdivision = case_when(her$AreaCode %in% c("37G8", "37G9","37H0","37H1",
+                                                                 "38G8", "38G9","38H0","38H1",
+                                                                 "39G8", "39G9","39H0","39H1",
+                                                                 "40G8", "40G9","40H0","40H1",
+                                                                 "41G8", "41G9","41H0","41H1")~ "3.d.26",
+                                             her$AreaCode %in% c ("37G5", "37G6","37G7",
+                                                                  "38G5", "38G6","38G7",
+                                                                  "39G5", "39G6","39G7",
+                                                                  "40G5", "40G6","40G7",
+                                                                  "41G5", "41G6","41G7",
+                                                                  "40G4", "41G4") ~ "3.d.25",
+                                             her$AreaCode %in% c ("37G2", "37G3","37G4",
+                                                                  "38G2", "38G3","38G4",
+                                                                  "39G2", "39G3", "39G4") ~ "3.d.24",
+                                             her$AreaCode %in% c("42G8","43G8")~ "3.d.28.d.2")                              )
+unique(her$Subdivision)
+unique(her$Age)
+her <- her %>% select("Subdivision", "Age", "LngtClass", "NoAtALK")
+her <- her %>% group_by(Subdivision, Age, LngtClass) %>% summarise(NoAtALK = sum(NoAtALK))
+her2 <- her %>% group_by(Subdivision, Age) %>% summarise(tot = sum(NoAtALK))
+her2 <- her2 %>% mutate(label=case_when((tot >24) ~ "b_blue",
+                        (tot <25) ~ "a_red"))
+her <- left_join(her, her2)
+ggplot(her, aes(x=Age, y=LngtClass, size = NoAtALK, color = label)) +
+        geom_point(alpha=0.2)+ facet_wrap(~Subdivision, scales = "free")+
+        theme(text = element_text(size=12), axis.text.x = element_text(angle = 45,hjust = 1))
+
+
+
+ggsave("HerBITS2004Q1_ALK.tiff", units= "mm", width = 350, height = 175)   
+
+#Looks like only in subdivision 24 some substitution could be needed
+
+
+
+
 
