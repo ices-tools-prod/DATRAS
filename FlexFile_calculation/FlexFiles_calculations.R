@@ -21,9 +21,10 @@ library(tidyr)
 #library(tibble)
 
 WKSAE_algorithms <- read.csv("WKSAE_algorithms.csv")
-  
+
+
 quarters <- 1:4
-cal_date <- "20211409"
+cal_date <- "20211609"
 
 survey_list <- c("FR-CGFS","IE-IAMS", "NIGFS","ROCKALL", "SCOROC", "SWC-IBTS", "SP-PORC",
                  "SP-NORTH", "NS-IBTS", "EVHOE", "SP-ARSA", "IE-IGFS", "SCOWCGFS")
@@ -112,6 +113,7 @@ for(n in 9){
                                    1.852 * 360 * 60 / 2 * pi*(acos(cos(deg2rad(ShootLat)) * cos(deg2rad(HaulLat)) * cos(deg2rad(HaulLong) - deg2rad(ShootLong)) + sin(deg2rad(ShootLat)) * sin(deg2rad(HaulLat)))))))
   
   data <- HH %>% filter(Country == "FR", Year == 2004:2021)
+  country <- "FR"
   
   source("utilities.R")
   
@@ -121,6 +123,7 @@ for(n in 9){
   write.csv(data,paste0(file_prefix, ".csv")) 
   
   data <- HH %>% filter(Country =="GB-SCT", Year == 2005:2021)
+  country <- "GB-SCT"
   
   source("utilities.R")
   
@@ -130,6 +133,7 @@ for(n in 9){
   write.csv(data,paste0(file_prefix, ".csv")) 
   
   data <- HH %>% filter(Country == "DK", Year == 2004:2021)
+  country <- "DK"
   
   source("utilities.R")
   
@@ -168,7 +172,7 @@ for(n in 9){
 # Here I will try to standardize surveys with similar rules with SweepLength
 
 for(n in 10:13){
-  survey <- survey_list[[10]]
+  survey <- survey_list[[n]]
   years <- 2016:2021
   #Download HH exchange data
   HH <- getDATRAS(record = "HH", survey, years, quarters)
