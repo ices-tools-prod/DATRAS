@@ -24,7 +24,7 @@ WKSAE_algorithms <- read.csv("WKSAE_algorithms.csv")
 
 
 quarters <- 1:4
-cal_date <- "20211609"
+cal_date <- "20211909"
 
 survey_list <- c("FR-CGFS","IE-IAMS", "NIGFS","ROCKALL", "SCOROC", "SWC-IBTS", "SP-PORC",
                  "SP-NORTH", "NS-IBTS", "EVHOE", "SP-ARSA", "IE-IGFS", "SCOWCGFS")
@@ -149,7 +149,18 @@ for(n in 9){
   data <- calculate_DS_WS_sweeps(data)
   
   file_prefix <- paste0(survey,"SE_Flexfile",cal_date)
-  write.csv(data,paste0(file_prefix, ".csv")) 
+  write.csv(data,paste0(file_prefix, ".csv"))
+  
+  data <- HH %>% filter(Country == "GB", Year == 2004:2021)
+  country <- "GB"
+  
+  source("utilities.R")
+  
+  data <- calculate_DS_WS_nsibtsGB(data)
+  
+  file_prefix <- paste0(survey,"GB_Flexfile",cal_date)
+  write.csv(data,paste0(file_prefix, ".csv"))
+  
   
   data_all <- HH
   
@@ -202,4 +213,7 @@ for(n in 10:13){
   file_prefix <- paste0(survey,"Flexfile",cal_date)
   write.csv(data,paste0(file_prefix, ".csv")) 
 }
-  
+
+FF20211909_complete <- list.files(path = "D:/Profile/Documents/R_Projects/DATRAS/FlexFile_calculation",
+                       pattern = "*.csv", full.names = TRUE) %>%
+  lapply(read_csv) %>% bind_rows       
