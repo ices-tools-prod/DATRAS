@@ -24,7 +24,7 @@ WKSAE_algorithms <- read.csv("WKSAE_algorithms.csv")
 
 
 quarters <- 1:4
-cal_date <- "20211909"
+cal_date <- "20212109"
 
 survey_list <- c("FR-CGFS","IE-IAMS", "NIGFS","ROCKALL", "SCOROC", "SWC-IBTS", "SP-PORC",
                  "SP-NORTH", "NS-IBTS", "EVHOE", "SP-ARSA", "IE-IGFS", "SCOWCGFS")
@@ -112,7 +112,7 @@ for(n in 9){
                                    HaulDur/60*1852*GroundSpeed,
                                    1.852 * 360 * 60 / 2 * pi*(acos(cos(deg2rad(ShootLat)) * cos(deg2rad(HaulLat)) * cos(deg2rad(HaulLong) - deg2rad(ShootLong)) + sin(deg2rad(ShootLat)) * sin(deg2rad(HaulLat)))))))
   
-  data <- HH %>% filter(Country == "FR", Year == 2004:2021)
+  data <- HH %>% filter(Country == "FR", Year > 2003)
   country <- "FR"
   
   source("utilities.R")
@@ -122,7 +122,7 @@ for(n in 9){
   file_prefix <- paste0(survey,"FR_Flexfile",cal_date)
   write.csv(data,paste0(file_prefix, ".csv")) 
   
-  data <- HH %>% filter(Country =="GB-SCT", Year == 2005:2021)
+  data <- HH %>% filter(Country =="GB-SCT", Year > 2004)
   country <- "GB-SCT"
   
   source("utilities.R")
@@ -132,7 +132,7 @@ for(n in 9){
   file_prefix <- paste0(survey,"SCT_Flexfile",cal_date)
   write.csv(data,paste0(file_prefix, ".csv")) 
   
-  data <- HH %>% filter(Country == "DK", Year == 2004:2021)
+  data <- HH %>% filter(Country == "DK", Year > 2003)
   country <- "DK"
   
   source("utilities.R")
@@ -142,7 +142,7 @@ for(n in 9){
   file_prefix <- paste0(survey,"DK_Flexfile",cal_date)
   write.csv(data,paste0(file_prefix, ".csv")) 
   
-  data <- HH %>% filter(Country == "SE", Year == 2004:2021)
+  data <- HH %>% filter(Country == "SE", Year > 2003)
   
   source("utilities.R")
   
@@ -151,7 +151,7 @@ for(n in 9){
   file_prefix <- paste0(survey,"SE_Flexfile",cal_date)
   write.csv(data,paste0(file_prefix, ".csv"))
   
-  data <- HH %>% filter(Country == "GB", Year == 2004:2021)
+  data <- HH %>% filter(Country == "GB", Year >2003)
   country <- "GB"
   
   source("utilities.R")
@@ -161,21 +161,25 @@ for(n in 9){
   file_prefix <- paste0(survey,"GB_Flexfile",cal_date)
   write.csv(data,paste0(file_prefix, ".csv"))
   
-  
-  data_all <- HH
+  data <- HH %>% filter(Country == "DE", Year > 2003)
+  country <- "DE"
   
   source("utilities.R")
   
-  data_by <- by(data_all, data_all$Country, calculate_DS_WS_nsibts)
+  data <- calculate_DS_WS_sweeps_de(data)
   
-  data_combined <-
-    do.call(
-      rbind,
-      data_by
-    )
+  file_prefix <- paste0(survey,"DE_Flexfile",cal_date)
+  write.csv(data,paste0(file_prefix, ".csv"))
   
-  file_prefix <- paste0(survey,"NL_GB_DE_Flexfile",cal_date)
-  write.csv(data_combined,paste0(file_prefix, ".csv")) 
+  data <- HH %>% filter(Country == "NL", Year >2003)
+  country <- "NL"
+  
+  source("utilities.R")
+  
+  data <- calculate_DS_WS_nl(data)
+  
+  file_prefix <- paste0(survey,"NL_Flexfile",cal_date)
+  write.csv(data,paste0(file_prefix, ".csv")) 
   
 }
 

@@ -277,18 +277,191 @@ calculate_DS_WS_sweeps <- function(data) {
       SweptAreaWSKM2 = Cal_Distance * Cal_WingSpread / 1000000) 
 }
 
+calculate_DS_WS_sweeps_de <- function(data) {
+  #this function deals with the most common case when conditions on the sweep
+  #length or years selection happens
+  
+  # 1st DoorSpread with the Priority 1 formula
+  if(survey == "NS-IBTS"){
+    formulas <- WKSAE_algorithms %>% filter(Country== country, Survey == survey,Priority == 1)
+  }else(formulas <- WKSAE_algorithms %>% filter(Survey == survey,Priority == 1))
+  formulas <- formulas %>% filter(formulas$x == "DoorSpread" | formulas$x=="Doorspread")
+  data1 <- data %>% filter(SweepLngt<= 50)
+  subset <- data1 %>% filter(is.na(DoorSpread))
+  formulas1 <- formulas %>% filter(SweepLengthMax ==50)
+  a <- as.numeric(formulas1$a)
+  b <- as.numeric(formulas1$b)
+  c <- as.numeric(formulas1$c)
+  g <- formulas1$y
+  h <- formulas1$z
+  
+  variabley <- paste0("data1$", g)
+  variablez <- paste0("data1$", h)
+  formulas1$Formula <- gsub("log", "log10", formulas1$Formula)
+  formulas1$Formula <- lapply(formulas1$Formula, gsub, pattern= 'y', replacement=variabley)
+  formulas1$Formula <- lapply(formulas1$Formula, gsub, pattern= 'z', replacement=variablez)
+  
+  data1 <- transform(data1, Cal_DoorSpread = ifelse(!is.na(DoorSpread), DoorSpread, eval(parse(text=formulas1$Formula))))
+  
+  data2 <- data %>% filter(SweepLngt > 50)
+  subset <- data2 %>% filter(is.na(DoorSpread))
+  formulas2 <- formulas %>% filter(SweepLengthMax == "else")
+  a <- as.numeric(formulas2$a)
+  b <- as.numeric(formulas2$b)
+  c <- as.numeric(formulas2$c)
+  g <- formulas2$y
+  h <- formulas2$z
+  
+  variabley <- paste0("data2$", g)
+  variablez <- paste0("data2$", h)
+  formulas2$Formula <- gsub("log", "log10", formulas2$Formula)
+  formulas2$Formula <- lapply(formulas2$Formula, gsub, pattern= 'y', replacement=variabley)
+  formulas2$Formula <- lapply(formulas2$Formula, gsub, pattern= 'z', replacement=variablez)
+  
+  data2 <- transform(data2, Cal_DoorSpread = ifelse(!is.na(DoorSpread), DoorSpread, eval(parse(text=formulas2$Formula))))
+  
+  
+  # 2nd DoorSpread with the Priority 2 formula
+  if(survey == "NS-IBTS"){
+    formulas <- WKSAE_algorithms %>% filter(Country== country, Survey == survey,Priority == 2)
+  }else(formulas <- WKSAE_algorithms %>% filter(Survey == survey,Priority == 2))
+  formulas <- formulas %>% filter(formulas$x == "DoorSpread"| formulas$x=="Doorspread")
+  formulas1 <- formulas %>% filter(SweepLengthMax ==50)
+  a <- as.numeric(formulas1$a)
+  b <- as.numeric(formulas1$b)
+  c <- as.numeric(formulas1$c)
+  g <- formulas1$y
+  h <- formulas1$z
+  
+  variabley <- paste0("data1$", g)
+  variablez <- paste0("data1$", h)
+  formulas1$Formula <- gsub("log", "log10", formulas1$Formula)
+  formulas1$Formula <- lapply(formulas1$Formula, gsub, pattern= 'y', replacement=variabley)
+  formulas1$Formula <- lapply(formulas1$Formula, gsub, pattern= 'z', replacement=variablez)
+  
+  if(nrow(formulas1) > 0){
+    data1 <- transform(data1, Cal_DoorSpread = ifelse(!is.na(Cal_DoorSpread), Cal_DoorSpread, eval(parse(text=formulas1$Formula))))
+  }
+  
+  # formulas2 <- formulas %>% filter(SweepLengthMax == "else")
+  # a <- as.numeric(formulas2$a)
+  # b <- as.numeric(formulas2$b)
+  # c <- as.numeric(formulas2$c)
+  # g <- formulas2$y
+  # h <- formulas2$z
+  # 
+  # variabley <- paste0("data2$", g)
+  # variablez <- paste0("data2$", h)
+  # formulas2$Formula <- gsub("log", "log10", formulas1$Formula)
+  # formulas2$Formula <- lapply(formulas2$Formula, gsub, pattern= 'y', replacement=variabley)
+  # formulas2$Formula <- lapply(formulas2$Formula, gsub, pattern= 'z', replacement=variablez)
+  # 
+  # if(nrow(formulas2) > 0){
+  #   data2 <- transform(data2, Cal_DoorSpread = ifelse(!is.na(Cal_DoorSpread), Cal_DoorSpread, eval(parse(text=formulas2$Formula))))
+  # }
+  # 
+  # 3rd WingSpread with Priority 1 formula
+  if(survey == "NS-IBTS"){
+    formulas <- WKSAE_algorithms %>% filter(Country== country, Survey == survey,Priority == 1)
+  }else(formulas <- WKSAE_algorithms %>% filter(Survey == survey,Priority == 1))
+  formulas <- formulas %>% filter(formulas$x == "WingSpread"| formulas$x=="Wingspread")
+  subset <- data1 %>% filter(is.na(WingSpread))
+  formulas1 <- formulas %>% filter(SweepLengthMax ==50)
+  a <- as.numeric(formulas1$a)
+  b <- as.numeric(formulas1$b)
+  c <- as.numeric(formulas1$c)
+  d <- as.numeric(formulas1$d)
+  g <- formulas1$y
+  h <- formulas1$z
+  i <- formulas1$q
+  
+  variabley <- paste0("data1$", g)
+  variablez <- paste0("data1$", h)
+  variableq <- paste0("data1$", i)
+  formulas1$Formula <- gsub("log", "log10", formulas1$Formula)
+  formulas1$Formula <- lapply(formulas1$Formula, gsub, pattern= 'y', replacement=variabley)
+  formulas1$Formula <- lapply(formulas1$Formula, gsub, pattern= 'z', replacement=variablez)
+  formulas1$Formula <- lapply(formulas1$Formula, gsub, pattern= 'q', replacement=variableq)
+  
+  
+  data1 <- transform(data1, Cal_WingSpread = ifelse(!is.na(WingSpread), WingSpread, eval(parse(text=formulas1$Formula))))
+  
+  subset <- data2 %>% filter(is.na(WingSpread))
+  formulas2 <- formulas %>% filter(SweepLengthMax == "else")
+  a <- as.numeric(formulas2$a)
+  b <- as.numeric(formulas2$b)
+  c <- as.numeric(formulas2$c)
+  d <- as.numeric(formulas2$d)
+  g <- formulas2$y
+  h <- formulas2$z
+  i <- formulas2$q
+  
+  variabley <- paste0("data2$", g)
+  variablez <- paste0("data2$", h)
+  variableq <- paste0("data2$", i)
+  formulas2$Formula <- gsub("log", "log10", formulas2$Formula)
+  formulas2$Formula <- lapply(formulas2$Formula, gsub, pattern= 'y', replacement=variabley)
+  formulas2$Formula <- lapply(formulas2$Formula, gsub, pattern= 'z', replacement=variablez)
+  formulas2$Formula <- lapply(formulas2$Formula, gsub, pattern= 'q', replacement=variableq)
+  
+  data2 <- transform(data2, Cal_WingSpread = ifelse(!is.na(WingSpread), WingSpread, eval(parse(text=formulas2$Formula))))
+  
+  #4th WingSpread with the Priority 2 formula
+  if(survey == "NS-IBTS"){
+    formulas <- WKSAE_algorithms %>% filter(Country== country, Survey == survey,Priority == 2)
+  }else(formulas <- WKSAE_algorithms %>% filter(Survey == survey,Priority == 2))
+  formulas <- formulas %>% filter(formulas$x == "WingSpread"| formulas$x=="Wingspread")
+  formulas1 <- formulas %>% filter(SweepLengthMax ==50)
+  a <- as.numeric(formulas1$a)
+  b <- as.numeric(formulas1$b)
+  c <- as.numeric(formulas1$c)
+  g <- formulas1$y
+  
+  variable <- paste0("data1$", g)
+  formulas1$Formula <- gsub("log", "log10", formulas1$Formula)
+  formulas1$Formula <- lapply(formulas1$Formula, gsub, pattern= 'y', replacement=variable)
+  
+  if(nrow(formulas1) > 0){
+    data1 <- transform(data1, Cal_WingSpread = ifelse(!is.na(Cal_WingSpread), Cal_WingSpread, eval(parse(text=formulas1$Formula))))
+  }
+  
+  # formulas2 <- formulas %>% filter(SweepLengthMax == "else")
+  # a <- as.numeric(formulas2$a)
+  # b <- as.numeric(formulas2$b)
+  # c <- as.numeric(formulas2$c)
+  # g <- formulas2$y
+  # 
+  # variable <- paste0("data2$", g)
+  # formulas2$Formula <- gsub("log", "log10", formulas2$Formula)
+  # formulas2$Formula <- lapply(formulas2$Formula, gsub, pattern= 'y', replacement=variable)
+  # 
+  # if(nrow(formulas2) > 0){
+  #   data2 <- transform(data2, Cal_WingSpread = ifelse(!is.na(Cal_WingSpread), Cal_WingSpread, eval(parse(text=formulas2$Formula))))
+  # }
+  data <- rbind(data1, data2)
+  
+  data[is.na(data)]<- "-9" 
+  data <- transform(data, DSflag = ifelse(Cal_DoorSpread == DoorSpread,"O", "C"))
+  data <- transform(data, WSflag = ifelse(Cal_WingSpread == WingSpread,"O", "C"))
+  data <- transform(data, DistanceFlag = ifelse(Cal_Distance == Distance,"O", "C"))
+  data$DateofCalculation <- cal_date
+  data$Cal_Distance <- as.numeric(data$Cal_Distance)
+  data$Cal_DoorSpread <- as.numeric(data$Cal_DoorSpread)
+  data$Cal_WingSpread <- as.numeric(data$Cal_WingSpread)
+  
+  
+  data <- data %>%
+    mutate(
+      SweptAreaDSKM2 = Cal_Distance * Cal_DoorSpread / 1000000,
+      SweptAreaWSKM2 = Cal_Distance * Cal_WingSpread / 1000000) 
+}
 
-calculate_DS_WS_nsibts <- function(data) {
-  # assume only one country
-  country <- data$Country[1]
-  cat(country, "\n")
-
+calculate_DS_WS_nl <- function(data) {
   # calculating missing DoorSpread and Wingspread
   
-  if (country == "NL") {
-    data <- data %>%
-      mutate(
-        Cal_DoorSpread = ifelse(
+  country <-  "NL" 
+  data <- data %>%
+    mutate(Cal_DoorSpread = ifelse(
           !is.na(DoorSpread),
           DoorSpread,
           case_when(
@@ -304,42 +477,7 @@ calculate_DS_WS_nsibts <- function(data) {
           0.1909 * Cal_DoorSpread + 4.011
         )
       )
-  } 
-   else if (country == "DE") {
-    data <- data %>%
-      mutate(
-        Cal_DoorSpread = ifelse(
-          !is.na(DoorSpread),
-          DoorSpread,
-          ifelse(
-            SweepLngt <= 50,
-            -7.456 + 3.616 * WingSpread + 3.124 * log(Depth),
-            -0.441 + 10.009 * log(Warplngt) + 4.768 * log(Depth)
-          )
-        ),
-        Cal_WingSpread = ifelse(
-          !is.na(WingSpread),
-          WingSpread,
-          case_when(
-            !is.na(DoorSpread) & SweepLngt <= 50 ~ 3.359 + 0.095 * DoorSpread + 1.391 * log(Warplngt) + 0.261 * log(Depth),
-            !is.na(DoorSpread) & SweepLngt > 50 ~ 3.087 + 0.118 * DoorSpread + 0.445 * log(Warplngt) + 0.368 * log(Depth),
-            is.na(DoorSpread) & SweepLngt <= 50 ~ 3.317 + 2.341 * log(Warplngt) + 0.713 * log(Depth),
-            is.na(DoorSpread) & SweepLngt > 50 ~ 3.087 + 0.118 * Cal_DoorSpread + 0.445 * log(Warplngt) + 0.368 * log(Depth)
-          )
-        )
-      ) %>%
-      mutate(
-        Cal_DoorSpread =
-          ifelse(
-            is.na(DoorSpread) & is.na(WingSpread) & SweepLngt <= 50,
-            -7.935 + (5.123 * Cal_WingSpread) + 2.366 * log(Depth),
-            Cal_DoorSpread
-          )
-      )
-  } else {
-    return(NULL)
-  }
-
+   
   data[is.na(data)]<- "-9" 
   data <- transform(data, DSflag = ifelse(Cal_DoorSpread == DoorSpread,"O", "C"))
   data <- transform(data, WSflag = ifelse(Cal_WingSpread == WingSpread,"O", "C"))
@@ -357,7 +495,6 @@ calculate_DS_WS_nsibts <- function(data) {
     )
 
 }
-
 
 calculate_DS_WS_nsibtsGB <- function(data) {
         # Separate data for 2006 and the rest
