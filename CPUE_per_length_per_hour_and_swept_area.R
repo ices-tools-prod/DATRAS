@@ -3,7 +3,9 @@
 # CPUE per length per hour and Swept Area
 #############################################
 #Authors: Vaishav Soni and Adriana Villamor
-#June 2019
+#June 2022
+#Update of the procedure to take into account Gear Exception = Double Beam (DB).
+# In those cases, swept area would be double
 
 #This script mimics the SQL procedure and provides the same results.
 
@@ -13,7 +15,7 @@ library(dplyr)
 
 
 # Select survey, year and quarter
-year <- 2018
+year <- 2014
 survey <- "BTS"
 quarter <- 3
 
@@ -52,6 +54,16 @@ df <- transform(df, DeriveDistance = ifelse(!is.na(Distance), Distance, (1853*Ha
 
 #Calculate swept area as Distance* Beam_width
 df <- df %>% mutate(SweptArea_m2 = as.numeric(DeriveDistance) * as.numeric(Beam_width))
+
+df$SweptArea_m2 <- as.integer(df$SweptArea_m2)
+
+#Multiply the swept area when there is a double beam
+
+df <- mutate(df, SweptArea_m2bis = ifelse(GearEx != "DB", NA, (SweptArea_m2*2)))
+df <- mutate(df,SweptArea_m2 = ifelse(!is.na(SweptArea_m2bis), SweptArea_m2bis,SweptArea_m2))
+
+#Remove the temporal variable
+df <- df[, -87]
 
 #To kilometers 
 df <- df %>% mutate(SweptArea_km2 = SweptArea_m2/1000000)
