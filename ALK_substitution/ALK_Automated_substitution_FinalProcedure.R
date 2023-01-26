@@ -16,15 +16,15 @@ library(RODBC)
 
 #### Input information
 survey <- 'NS-IBTS'
-year <- 2020
+year <- 2022
 quarter <- 3
 
 file_root <- paste0(survey, year,"q", quarter,"_")
 
 #### Connect to database
 # settings
-dbConnect_datras <- 'Driver={SQL Server};Server=SQL06;Database=DATRAS;Trusted_Connection=yes'
-dbConnect_dwdatras <- 'Driver={SQL Server};Server=SQL06;Database=DW_DATRAS;Trusted_Connection=yes'
+dbConnect_datras <- 'Driver={SQL Server};Server=SQL10;Database=DATRAS;Trusted_Connection=yes'
+dbConnect_dwdatras <- 'Driver={SQL Server};Server=SQL10;Database=DW_DATRAS;Trusted_Connection=yes'
 # connect
 conn_datras <- odbcDriverConnect(connection = dbConnect_datras)
 conn_dwdatras <- odbcDriverConnect(connection = dbConnect_dwdatras)
@@ -48,6 +48,8 @@ df <- sqlQuery(conn_dwdatras, sqlq)
 
 list <- unique(df$tblcodeidAphia)
 sps <- sps %>% filter(tblcodeidAphia %in% list)
+
+# sps <- sps[5,]
 
 df <- merge(df,sps)
 
@@ -122,13 +124,13 @@ res <- unique(res)
 dat_long <- res  
 dat_long$Age <- factor(dat_long$Age, levels = c("Age_0", "Age_1", "Age_2", "Age_3", "Age_4", "Age_5", "Age_6", "Age_7", "Age_8", "Age_9", "Age_10"))
         
- ggplot(dat_long, aes(x=Age, y=LngtClass, size=Value, colour = label)) +
-       geom_point(alpha=0.2)+ facet_grid(Species~Area, scales = "free")+
-       theme(text = element_text(size=6), axis.text.x = element_text(angle = 45,hjust = 1))+
-       scale_color_manual(values = c("blue", "red"))
+ # ggplot(dat_long, aes(x=Age, y=LngtClass, size=Value, colour = label)) +
+ #       geom_point(alpha=0.2)+ facet_grid(Species~Area, scales = "free")+
+ #       theme(text = element_text(size=6), axis.text.x = element_text(angle = 45,hjust = 1))+
+ #       scale_color_manual(values = c("blue", "red"))
 
 # blue shows points with more than 25 measurements and red those with less
- ggsave(paste0(file_root,"ALKnoSubstitution_COLOR.tiff"), units= "mm", width = 350, height = 175)
+ # ggsave(paste0(file_root,"ALKnoSubstitution_COLOR.tiff"), units= "mm", width = 350, height = 175)
 
 # not sure if I need this sum df later
 dat_long[is.na(dat_long)] <- 0
@@ -342,14 +344,14 @@ proc2_dat_long[proc2_dat_long == 0] <- NA
 
 # something wrong about these colours, check
 
-ggplot(proc2_dat_long, aes(x=Age, y=LngtClass, size=Value2, colour = label)) +
-        geom_point(alpha=0.2)+ facet_grid(Species~Area, scales = "free")+
-        theme(text = element_text(size=6), axis.text.x = element_text(angle = 45,hjust = 1))+
-        scale_color_manual(values = c("black", "red"))
+# ggplot(proc2_dat_long, aes(x=Age, y=LngtClass, size=Value2, colour = label)) +
+#         geom_point(alpha=0.2)+ facet_grid(Species~Area, scales = "free")+
+#         theme(text = element_text(size=6), axis.text.x = element_text(angle = 45,hjust = 1))+
+#         scale_color_manual(values = c("black", "red"))
 
 # Black means that is been kept the same, red means that it has been supplemented
 
-ggsave(paste0(file_root,"ALKAutSubst_color.tiff"), units= "mm", width = 350, height = 175)
+# ggsave(paste0(file_root,"ALKAutSubst_color.tiff"), units= "mm", width = 350, height = 175)
 
 ############
 #~~~~~~~~~~~
@@ -380,11 +382,12 @@ names(res3)
 #Check the plus group, needed for indeces calculation
 # However it is set per species elsewhere, so this step could easily be removed
 
-# ca <- icesDatras::getCAdata(survey, year, quarter)
+ca <- icesDatras::getCAdata(survey, year, quarter)
 # 
-# plus_gr <- ca %>% select(Valid_Aphia, PlusGr)
+plus_gr <- ca %>% select(Valid_Aphia, PlusGr)
 # 
-# plus_gr <- unique(plus_gr)
+plus_gr <- unique(plus_gr)
+plus_gr
 
 # If all are NAs
 res3$PlusGr <- "-9"
@@ -411,11 +414,15 @@ res3 <- subset(res3, select = c("Survey", "Year", "Quarter", "Area", "Speccode",
 # col.order(res3 <- subset(res3, select = c("Survey", "Year", "Quarter", "Area", "Speccode", "Lngtclas", "Age", "NoAtALK", "PlusGr", "LngtCode","Sex"))
 
 
+q3_2022 <- res3
+
+# res3 <- rbind(q12020, q32020, q12021)
+
 #I connect to the test server for thew time being
 
-dbConnect_datras <- 'Driver={SQL Server Native Client 11.0};Server=SQL2016Dev;Database=DATRAS;Trusted_Connection=yes'
-
-conn_datras <- odbcDriverConnect(connection = dbConnect_datras)
+# dbConnect_datras <- 'Driver={SQL Server Native Client 11.0};Server=SQL2019Dev;Database=DATRAS;Trusted_Connection=yes'
+# 
+# conn_datras <- odbcDriverConnect(connection = dbConnect_datras)
 
 #dbWriteTable(conn_datras, name = "A_DATRAS_tblSubKeyInfotris", value = res3, row.names = TRUE)
 
@@ -425,8 +432,16 @@ conn_datras <- odbcDriverConnect(connection = dbConnect_datras)
 # Have to make the right order of fields before uploading to db!!
 
 
+dbConnect_datras <- 'Driver={SQL Server};Server=SQL10;Database=DATRAS;Trusted_Connection=yes'
+# dbConnect_dwdatras <- 'Driver={SQL Server};Server=SQL10;Database=DW_DATRAS;Trusted_Connection=yes'
+# connect
+conn_datras <- odbcDriverConnect(connection = dbConnect_datras)
+# conn_dwdatras <- odbcDriverConnect(connection = dbConnect_dwdatras)
+
+
+
 # you need to rename the table, i can't get it to overwrite the existing one
-sqlSave(conn_datras, res3, tablename = "A_DATRAS_tblSubKeyInfo2020q3", rownames= T, append = F)
+sqlSave(conn_datras, q3_2022, tablename = "A_DATRAS_tblSubKeyInfo_q3_2022_v2", rownames= T, append = F)
 
 # Inform Vaishav about this table, DW and indices calculations can be done then
 
