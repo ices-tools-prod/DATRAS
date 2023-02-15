@@ -19,15 +19,15 @@ library(icesDatras)
 
 #### Connect to database
 # settings
-dbConnect_datras <- 'Driver={SQL Server};Server=SQL06;Database=DATRAS;Trusted_Connection=yes'
+dbConnect_datras <- 'Driver={SQL Server};Server=SQL10;Database=DATRAS;Trusted_Connection=yes'
 
 # connect
 conn_datras <- odbcDriverConnect(connection = dbConnect_datras)
 
 #### Input information, codes can be checkes in tblCodes
 survey <- '2341'
-year <- 2020
-quarter <- 3
+year <- 2022
+quarter <- 1
 
 # Country will only be selected in some cases, it is preferable to check all quarter
 # data in one go
@@ -456,7 +456,7 @@ names(CA)
 # Now we get the same file from the download, DW_DATRAS. 
 ###############################################################
 
-dbConnect_dwdatras <- 'Driver={SQL Server};Server=SQL06;Database=DW_DATRAS;Trusted_Connection=yes'
+dbConnect_dwdatras <- 'Driver={SQL Server};Server=SQL10;Database=DW_DATRAS;Trusted_Connection=yes'
 conn_dwdatras <- odbcDriverConnect(connection = dbConnect_dwdatras)
 
 haulID <- unique(HH_2$tblHaulID)
